@@ -39,4 +39,14 @@ function predict(x){let q=D.map(r=>{let d=Math.min(Math.abs(x.h-r[2])/40,1)*.25+
 function analizar(){let x={h:+$("h").value||0,t:$("t").value,m:$("m").value,c:$("c").value};let [p,a,b]=predict(x),real=parseFloat($("v").value);$("res").style.display="block";$("res").innerHTML=`<h3>🔮 Resultado</h3><div class="metric">${a.toFixed(2)}–${b.toFixed(2)} V</div><p>Estimación central: <b>${p.toFixed(2)} V</b></p>${Number.isNaN(real)?"<p>Introduce el voltaje real para comparar.</p>":`<p>Voltaje real: <b>${real.toFixed(2)} V</b></p><p>${real>=a&&real<=b?"🟢 La medición está dentro del rango estimado.":"🔵 Hay una diferencia experimental de "+Math.abs(real-p).toFixed(2)+" V."}</p>`}<small>Estimación basada en similitud con los 7 registros experimentales.</small>`}
 function render(){ $("tb").innerHTML=D.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]||"Espinas"}</td><td>${x[3]}</td><td>${x[4]}</td><td>${x[7]}</td><td><b>${x[9].toFixed(2)} V</b></td></tr>`).join("");let a=[...D].sort((x,y)=>y[9]-x[9]);$("rk").innerHTML=a.map((x,i)=>`<div class="rank"><b>${i+1}. ${x[0]} — ${x[1]}</b><span>${x[9].toFixed(2)} V</span></div>`).join("");let ctx=$("g").getContext("2d"),w=900,h=330;ctx.clearRect(0,0,w,h);let bw=90;a.forEach((x,i)=>{let bh=x[9]/.55*230,xx=65+i*115,yy=275-bh;ctx.fillStyle="#1b7f4b";ctx.fillRect(xx,yy,bw,bh);ctx.fillStyle="#17231e";ctx.textAlign="center";ctx.fillText(x[0],xx+bw/2,300);ctx.fillText(x[9].toFixed(2),xx+bw/2,yy-7)})}
 function csv(){let s="Planta,Especie,Hojas,Tamaño,Humedad,Estado,Luz,Maceta,Tierra,Voltaje\n"+D.map(x=>x.join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+s],{type:"text/csv"}));a.download="BioIA_datos.csv";a.click()}init();
-</script></body></html>
+</script><script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("./sw.js?v=2.1");
+      await reg.update();
+    } catch (e) {}
+  });
+}
+</script>
+</body></html>
