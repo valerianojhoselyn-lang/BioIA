@@ -7,7 +7,7 @@ body{font-family:system-ui;margin:0;background:#f4f8f5;color:#17231e}header{back
 <header><h1>🌱⚡ BioIA 2.0</h1><div>Predicción biofotovoltaica + análisis experimental</div></header>
 <main>
 <section class="card"><h2>🤖 Analizar planta</h2><div class="grid">
-<label>Planta<select id="p"></select></label><label>Hojas<input id="h" type="number" min="0"></label>
+<label>Planta<select id="p"></select><div id="otraPlantaWrap" style="display:none;margin-top:8px"><label>Nombre de la nueva planta<input id="nombreOtra" placeholder="Ej. Albahaca"></label></div></label><label>Hojas<input id="h" type="number" min="0"></label>
 <label>Tamaño<select id="t"><option>Pequeñas</option><option>Medianas</option><option>Grandes/largas</option><option>No aplica (espinas)</option></select></label>
 <label>Humedad<select id="m"><option>Media-baja</option><option>Media</option><option>Media-alta</option></select></label>
 <label>Estado<select id="e"><option>Verde y sana</option><option>Verde</option></select></label>
@@ -48,5 +48,86 @@ if ("serviceWorker" in navigator) {
     } catch (e) {}
   });
 }
+</script>
+
+<script>
+(function(){
+  const KEY="bioia_custom_plants_v22";
+  const getCustom=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return[]}};
+  const getBase=()=>window.D||[];
+  const getAll=()=>getBase().concat(getCustom());
+
+  function fillSelector(){
+    const sel=document.getElementById("p");
+    if(!sel) return;
+    const current=sel.value;
+    sel.innerHTML=getAll().map(x=>`<option value="${x[0]}">${x[0]} — ${x[1]}</option>`).join("")+
+      `<option value="__OTHER__">➕ Otra planta</option>`;
+    if(getAll().some(x=>x[0]===current)) sel.value=current;
+  }
+
+  function showOther(){
+    const sel=document.getElementById("p"), wrap=document.getElementById("otraPlantaWrap");
+    if(sel && wrap) wrap.style.display=sel.value==="__OTHER__"?"block":"none";
+  }
+
+  window.addEventListener("load",function(){
+    fillSelector();
+    const sel=document.getElementById("p");
+    if(!sel) return;
+    sel.addEventListener("change",showOther);
+    showOther();
+
+    const btn=document.querySelector('button[onclick="analizarConIA()"]');
+    if(!btn) return;
+
+    const original=window.analizarConIA;
+    btn.onclick=function(){
+      if(sel.value!=="__OTHER__"){
+        if(typeof original==="function") original();
+        return;
+      }
+
+      const name=(document.getElementById("nombreOtra")?.value||"").trim();
+      const hojas=parseInt(document.getElementById("h")?.value||"0");
+      if(!name || !hojas){
+        alert("Escribe el nombre de la planta y la cantidad de hojas.");
+        return;
+      }
+
+      const humedad=document.getElementById("m")?.value||"Media";
+      const estado=document.getElementById("e")?.value||"Verde y sana";
+      const tamano=document.getElementById("t")?.value||"Medianas";
+      const luz=document.getElementById("l")?.value||"Luz solar";
+      const maceta=document.getElementById("c")?.value||"Mediana";
+      const tierra=document.getElementById("soil")?.value||"Mucha";
+      const real=parseFloat(document.getElementById("v")?.value||"");
+
+      const all=getAll();
+      const id="P"+(all.length+1);
+      const item=[id,name,hojas,tamano,humedad,estado,luz,maceta,tierra,
+                  Number.isNaN(real)?null:real];
+
+      const custom=getCustom();
+      custom.push(item);
+      localStorage.setItem(KEY,JSON.stringify(custom));
+
+      fillSelector();
+      sel.value=id;
+      showOther();
+
+      if(typeof window.render==="function") window.render();
+
+      const res=document.getElementById("res");
+      if(res){
+        res.style.display="block";
+        res.innerHTML=`<h3>🌱 Nueva planta registrada</h3>
+          <p><b>${id} — ${name}</b> fue agregada correctamente.</p>
+          <p>Ahora forma parte del historial de BioIA y podrás seguir registrando nuevas plantas.</p>`;
+      }
+      alert(id+" — "+name+" fue guardada en BioIA.");
+    };
+  });
+})();
 </script>
 </body></html>
