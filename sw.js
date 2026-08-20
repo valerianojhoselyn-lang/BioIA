@@ -1,4 +1,4 @@
-const CACHE_NAME = "bioia-2.2-v2";
+const CACHE_NAME = "bioia-2.3-v2";
 const CORE = [
   "./",
   "./index.html",
